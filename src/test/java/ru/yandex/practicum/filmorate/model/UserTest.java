@@ -7,12 +7,12 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class UserTest {
+public class UserTest extends User {
 
     User user;
     private static Validator validator;
@@ -25,12 +25,12 @@ public class UserTest {
     @BeforeEach
     public void createUser() {
         user = new User();
+        user.setEmail("xx@xx.ru");
         user.setLogin("xxx");
     }
 
     @Test
     public void shouldSetEmail() {
-        user.setEmail("xx@xx.ru");
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertEquals(0, violations.size(), "email");
     }
@@ -71,7 +71,7 @@ public class UserTest {
 
     @Test
     public void shouldSetBirthDay() {
-        user.setBirthday(new Date(99, 1, 1));
+        user.setBirthday(LocalDate.of(1999, 1, 1));
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertEquals(0, violations.size(), "BirthDay");
@@ -79,7 +79,7 @@ public class UserTest {
 
     @Test
     public void shouldErrorSetBirthDay() {
-        user.setBirthday(new Date(199, 1, 1));
+        user.setBirthday(LocalDate.of(2999, 1, 1));
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertEquals(1, violations.size(), "BirthDay");

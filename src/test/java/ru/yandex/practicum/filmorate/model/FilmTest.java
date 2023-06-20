@@ -3,14 +3,16 @@ package ru.yandex.practicum.filmorate.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.validation.*;
-import java.util.Date;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class FilmTest {
+public class FilmTest extends Film {
 
     Film film;
 
@@ -61,7 +63,7 @@ public class FilmTest {
 
     @Test
     public void shouldSetReleaseDate() {
-        film.setReleaseDate(new Date(99, 1, 1));
+        film.setReleaseDate(LocalDate.of(2001, 1, 1));
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertEquals(0, violations.size(), "ReleaseDate after 1895.12.28");
@@ -69,7 +71,7 @@ public class FilmTest {
 
     @Test
     public void shouldSetReleaseDate1() {
-        film.setReleaseDate(new Date(-4, 0, -3));
+        film.setReleaseDate(LocalDate.of(1895, 12, 28));
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertEquals(0, violations.size(), "ReleaseDate after 1895.12.28");
@@ -77,9 +79,10 @@ public class FilmTest {
 
     @Test
     public void shouldErrorReleaseDate() {
-        assertThrows(ValidationException.class, () -> {
-            film.setReleaseDate(new Date(-99, 1, 1));
-        }, "ReleaseDate after 1895.12.28");
+        film.setReleaseDate(LocalDate.of(1, 12, 28));
+
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertEquals(1, violations.size(), "ReleaseDate after 1895.12.28");
     }
 
     @Test
