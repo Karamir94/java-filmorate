@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.UsersRepository;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 @Validated
@@ -24,7 +23,7 @@ public class UserController {
     @GetMapping()
     public List<User> getUsers() {
         log.info("Получен GET запрос");
-        return new ArrayList<>(users.getUsers().values());
+        return users.getAll();
     }
 
     @PostMapping()

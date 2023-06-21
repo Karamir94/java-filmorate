@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repository.FilmsRepository;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 @Validated
@@ -24,7 +23,7 @@ public class FilmController {
     @GetMapping()
     public List<Film> getUsers() {
         log.info("Получен GET запрос");
-        return new ArrayList<>(films.getFilms().values());
+        return films.getAll();
     }
 
     @PostMapping()

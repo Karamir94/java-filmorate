@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.repository;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -9,17 +7,21 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
-@Getter
-@Setter
 public class FilmsRepository { // класс для хранения базы фильмов
     private long id;
-    private HashMap<Long, Film> films = new HashMap<>();
+    private final HashMap<Long, Film> films = new HashMap<>();
     private static final Logger log = LoggerFactory.getLogger("FilmsRepository");
 
     public long generateId() {
         return ++id;
+    }
+
+    public List<Film> getAll() {
+        return new ArrayList<>(films.values());
     }
 
     public void create(Film film) throws UserAlreadyExistException {

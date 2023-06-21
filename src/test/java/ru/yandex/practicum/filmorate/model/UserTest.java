@@ -14,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UserTest extends User {
 
-    User user;
-    private static Validator validator;
+    private User user;
+    private static final Validator validator;
 
     static {
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
