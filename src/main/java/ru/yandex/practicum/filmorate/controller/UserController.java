@@ -1,42 +1,73 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.repository.UsersRepository;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.List;
 
+@Slf4j
 @Validated
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
-    private static final Logger log = LoggerFactory.getLogger("UserController");
 
-    private final UsersRepository users = new UsersRepository();
+    private final UserService userService;
 
     @GetMapping()
-    public List<User> getUsers() {
+    public List<User> getAllUsers() {
         log.info("Получен GET запрос");
-        return users.getAll();
+        return userService.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable long id) {
+        log.info("Получен GET запрос");
+        return userService.get(id);
     }
 
     @PostMapping()
-    public User create(@Valid @RequestBody User user) throws UserAlreadyExistException {
+    public User create(@Valid @RequestBody User user) {
         log.info("Получен POST запрос");
-        users.create(user);
+        userService.create(user);
         return user;
     }
 
     @PutMapping()
-    public User update(@Valid @RequestBody User user) throws ResponseStatusException {
+    public User update(@Valid @RequestBody User user) {
         log.info("Получен PUT запрос");
-        users.update(user);
+        userService.update(user);
         return user;
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public User addFriend(@PathVariable long id, @PathVariable long friendId) {
+        log.info("Получен PUT запрос addFriend");
+        userService.addFriend(id, friendId);
+        return userService.get(friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public User deleteFriend(@PathVariable long id, @PathVariable long friendId) {
+        log.info("Получен DELETE запрос deleteFriend");
+        userService.deleteFriend(id, friendId);
+        return userService.get(friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable long id) {
+        log.info("Получен GET запрос getFriends");
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
+        log.info("Получен GET запрос getCommonFriends");
+        return userService.getCommonFriends(id, otherId);
     }
 }

@@ -1,33 +1,39 @@
 package ru.yandex.practicum.filmorate.repository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
-import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
-public class FilmsRepository { // класс для хранения базы фильмов
+@Slf4j
+@Component
+public class InMemoryFilmRepository implements FilmRepository { // класс для хранения базы фильмов
     private long id;
-    private final HashMap<Long, Film> films = new HashMap<>();
-    private static final Logger log = LoggerFactory.getLogger("FilmsRepository");
+    private final Map<Long, Film> films = new HashMap<>();
 
-    public long generateId() {
+    private long generateId() {
         return ++id;
     }
 
+    @Override
     public List<Film> getAll() {
         return new ArrayList<>(films.values());
     }
 
-    public void create(Film film) throws UserAlreadyExistException {
+    @Override
+    public Optional<Film> get(long filmId) {
+        return Optional.ofNullable(films.get(filmId));
+    }
+
+    @Override
+    public void create(Film film) {
         if (films.containsValue(film)) {
             log.info("Данный фильм уже зарегестрирован");
-            throw new UserAlreadyExistException();
+            throw new AlreadyExistException(String.format("Film № %d already exist", film.getId()));
         } else {
             film.setId(generateId());
             films.put(film.getId(), film);
@@ -36,6 +42,7 @@ public class FilmsRepository { // класс для хранения базы ф
         }
     }
 
+    @Override
     public Film update(Film film) {
         if (films.containsKey(film.getId())) {
             films.put(film.getId(), film);
