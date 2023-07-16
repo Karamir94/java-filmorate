@@ -27,6 +27,8 @@ public class Film {
     private LocalDate releaseDate; // дата релиза — не раньше 28 декабря 1895 года
     @Positive
     private int duration; // продолжительность фильма должна быть положительной
+    private String rating;
+    private Set<String> genre;
     @JsonIgnore
     private Set<Long> likes = new HashSet<>();
 

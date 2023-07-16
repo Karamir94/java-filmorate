@@ -24,6 +24,7 @@ public class User {
     @Past
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday; // дата рождения не может быть в будущем
+    private boolean isAddedFriend; // true для подтвержденной заявки
 
     public void setName(String name) {
         if (name.isBlank() || name.isEmpty()) {
