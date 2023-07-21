@@ -11,7 +11,7 @@ public interface UserRepository {
 
     User create(User user);
 
-    Optional<User> update(User user);
+    User update(User user);
 
     Optional<User> get(long userId);
 }

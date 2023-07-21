@@ -18,7 +18,7 @@ public class JdbcLikesRepositoryTest {
 
     @Test
     public void shouldAddAndDeleteLike() {
-        likesRatingRepository.userLikedFilm(1, 1);
+        likesRatingRepository.userLikedFilm(1, 2);
         boolean checkLikeTrue = likesRatingRepository.checkUserLikedFilm(1, 1);
 
         assertThat(checkLikeTrue)

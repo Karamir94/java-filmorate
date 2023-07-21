@@ -9,6 +9,8 @@ public interface FriendsRepository {
 
     boolean deleteFriend(long userId, long friendId);
 
+    boolean checkUserInFriends(long filmId, long userId);
+
     List<User> getUsersFriends(long userId);
 
     List<User> getCommonFriends(long user1Id, long user2Id);

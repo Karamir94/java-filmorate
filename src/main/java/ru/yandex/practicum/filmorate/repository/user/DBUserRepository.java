@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
@@ -35,7 +36,7 @@ public class DBUserRepository implements UserRepository {
         final String sql = "SELECT * FROM USERS WHERE USER_ID = :id";
         final List<User> users = jdbcOperations.query(sql, Map.of("id", id), (rs, rowNum) -> makeUser(rs));
 
-        if (!users.isEmpty()) {
+        if (users.size() == 1) {
             log.info("Найден пользователь с id: {} и именем {} ", users.get(0).getId(), users.get(0).getName());
             return Optional.of(users.get(0));
         } else {
@@ -57,11 +58,11 @@ public class DBUserRepository implements UserRepository {
 
         jdbcOperations.update(sql, map, keyHolder);
         user.setId(keyHolder.getKey().longValue());
-        return get(user.getId()).get();
+        return user;
     }
 
     @Override
-    public Optional<User> update(User user) {
+    public User update(User user) {
         String sql = "UPDATE USERS SET EMAIL = :email, LOGIN = :login, NAME = :name, " +
                 "BIRTHDAY = :birthday WHERE USER_ID = :id";
 
@@ -72,9 +73,11 @@ public class DBUserRepository implements UserRepository {
         map.addValue("birthday", user.getBirthday());
         map.addValue("id", user.getId());
 
-        jdbcOperations.update(sql, map);
-
-        return get(user.getId());
+        int count = jdbcOperations.update(sql, map);
+        if (count <= 0) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+        return user;
     }
 
     private User makeUser(ResultSet rs) throws SQLException {

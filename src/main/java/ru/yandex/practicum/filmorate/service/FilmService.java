@@ -6,10 +6,15 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
+import ru.yandex.practicum.filmorate.repository.film.GenreRepository;
 import ru.yandex.practicum.filmorate.repository.film.LikesRatingRepository;
+import ru.yandex.practicum.filmorate.repository.film.RatingMPARepository;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -18,26 +23,54 @@ public class FilmService {
 
     private final FilmRepository filmRepository;
     private final LikesRatingRepository likesRatingRepository;
+    private final GenreRepository genreRepository;
+    private final RatingMPARepository ratingMPARepository;
 
     public List<Film> getAll() {
-        return filmRepository.getAll();
+        List<Film> films = filmRepository.getAll();
+
+        for (Film film : films) {
+            film.setGenres(new LinkedHashSet<>(genreRepository.getFilmGenre(film.getId())));
+        }
+        return films;
     }
 
     public Film get(long filmId) {
         checkId(filmId);
-        return filmRepository.get(filmId)
+        Film film = filmRepository.get(filmId)
                 .orElseThrow(() -> new NotFoundException(String.format("Film № %d not found", filmId)));
+
+        film.setGenres(new LinkedHashSet<>(genreRepository.getFilmGenre(film.getId())));
+        return film;
+    }
+
+    private Film setFilmGenres(Film film) {
+        if (film.getGenres() != null) {
+            List<Integer> filmGenres = film.getGenres().stream()
+                    .map(Genre::getId)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            genreRepository.deleteGenresOfFilm(film.getId());
+
+            for (Integer genreId : filmGenres) {
+                genreRepository.setFilmGenre(film.getId(), genreId);
+            }
+            film.setGenres(new LinkedHashSet<>(genreRepository.getFilmGenre(film.getId())));
+        }
+        return film;
     }
 
     public Film create(Film film) {
-        return filmRepository.create(film);
-
+        Film creFilm = filmRepository.create(film);
+        return setFilmGenres(creFilm);
     }
 
     public Film update(Film film) {
         checkId(film.getId());
-        return filmRepository.update(film)
-                .orElseThrow(() -> new NotFoundException(String.format("Film № %d not found", film.getId())));
+        Film updFilm = filmRepository.update(film);
+        updFilm.setMpa(ratingMPARepository.getById(film.getMpa().getId()).get());
+        return setFilmGenres(updFilm);
     }
 
     public void addLike(long filmId, long userId) {
@@ -75,6 +108,11 @@ public class FilmService {
     }
 
     public List<Film> getTopFilms(int size) {
-        return filmRepository.getPopularFilmList(size);
+        List<Film> films = filmRepository.getPopularFilmList(size);
+
+        for (Film film : films) {
+            film.setGenres(new LinkedHashSet<>(genreRepository.getFilmGenre(film.getId())));
+        }
+        return films;
     }
 }

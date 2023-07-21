@@ -49,6 +49,23 @@ public class DBFriendsRepository implements FriendsRepository {
     }
 
     @Override
+    public boolean checkUserInFriends(long userId, long friendId) {
+        String sql = " SELECT FRIEND_ID FROM USERS_FRIENDS WHERE USER_ID = :userId AND FRIEND_ID = :friendId";
+        List<Long> likes = jdbcOperations.query(
+                sql,
+                Map.of("userId", userId, "friendId", friendId),
+                (rs, rowNum) -> makeRate(rs)
+        );
+        if (likes.size() == 0) {
+            log.info("Пользователя нет в друзьях");
+            return false;
+        } else {
+            log.info("Пользователь есть в друзьях");
+            return true;
+        }
+    }
+
+    @Override
     public List<User> getUsersFriends(long userId) {
         String sql = "SELECT U.* " +
                 "FROM USERS_FRIENDS AS F " +
@@ -87,5 +104,9 @@ public class DBFriendsRepository implements FriendsRepository {
                 rs.getString("NAME"),
                 rs.getDate("BIRTHDAY").toLocalDate()
         );
+    }
+
+    private Long makeRate(ResultSet rs) throws SQLException {
+        return rs.getLong("FRIEND_ID");
     }
 }

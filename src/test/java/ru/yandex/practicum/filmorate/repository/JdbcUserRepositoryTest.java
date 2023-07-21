@@ -24,6 +24,7 @@ public class JdbcUserRepositoryTest {
     @Test
     public void shouldCreateAndFindUserById() {
         User user2 = User.builder()
+                .id(4)
                 .email("user@ya.ru")
                 .login("userLogin")
                 .name("userName")

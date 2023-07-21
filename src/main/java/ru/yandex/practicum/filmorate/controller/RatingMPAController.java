@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.service.RatingMPAService;
@@ -11,7 +10,6 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-@Validated
 @RestController
 @RequestMapping("/mpa")
 public class RatingMPAController {

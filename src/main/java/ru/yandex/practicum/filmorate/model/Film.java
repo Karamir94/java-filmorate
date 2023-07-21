@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import ru.yandex.practicum.filmorate.validator.RealiseDateConstraint;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -27,6 +27,7 @@ public class Film {
     private LocalDate releaseDate; // дата релиза — не раньше 28 декабря 1895 года
     @Positive
     private int duration; // продолжительность фильма должна быть положительной
+    @Valid
     private RatingMPA mpa;
-    private List<Genre> genres = new ArrayList<>();
+    private Set<Genre> genres;
 }

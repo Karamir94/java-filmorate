@@ -7,8 +7,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 
 import java.sql.ResultSet;
@@ -16,15 +16,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DBFilmRepository implements FilmRepository {
 
-    private final GenreRepository genreRepository;
-    private final RatingMPARepository ratingMPARepository;
     private final NamedParameterJdbcOperations jdbcOperations;
 
     @Override
@@ -36,8 +33,8 @@ public class DBFilmRepository implements FilmRepository {
                 "WHERE F.FILM_ID = :filmId";
 
         List<Film> films = jdbcOperations.query(sql, Map.of("filmId", filmId), (rs, rowNum) -> makeFilm(rs));
-        if (!films.isEmpty()) {
-            log.info("Найдена фильм с id: {} и названием {} ", films.get(0).getId(), films.get(0).getName());
+        if (films.size() == 1) {
+            log.info("Найден фильм с id: {} и названием {} ", films.get(0).getId(), films.get(0).getName());
             return Optional.of(films.get(0));
         } else {
             log.info("Фильм c id {} не найден", filmId);
@@ -73,19 +70,11 @@ public class DBFilmRepository implements FilmRepository {
         Long filmId = keyHolder.getKey().longValue();
 
         film.setId(filmId);
-        List<Integer> filmGenres = film.getGenres().stream()
-                .map(Genre::getId)
-                .distinct()
-                .collect(Collectors.toList());
-        for (Integer genreId : filmGenres) {
-            genreRepository.setFilmGenre(film.getId(), genreId);
-        }
-        film.setGenres(genreRepository.getFilmGenre(filmId));
-        return get(film.getId()).get();
+        return film;
     }
 
     @Override
-    public Optional<Film> update(Film film) {
+    public Film update(Film film) {
         String sql = "UPDATE FILMS SET NAME = :name, RELEASE_DATE = :releaseDate, DESCRIPTION = :description, " +
                 "RATING_MPA_ID = :ratingMpaId, DURATION = :duration " +
                 "WHERE FILM_ID = :id";
@@ -97,20 +86,11 @@ public class DBFilmRepository implements FilmRepository {
         map.addValue("ratingMpaId", film.getMpa().getId());
         map.addValue("duration", film.getDuration());
 
-        jdbcOperations.update(sql, map);
-
-        List<Integer> filmGenreIdList = film.getGenres().stream()
-                .map(Genre::getId)
-                .distinct()
-                .collect(Collectors.toList());
-        genreRepository.deleteGenresOfFilm(film.getId());
-
-        for (Integer genreId : filmGenreIdList) {
-            genreRepository.setFilmGenre(film.getId(), genreId);
+        int count = jdbcOperations.update(sql, map);
+        if (count <= 0) {
+            throw new NotFoundException("Пользователь не найден");
         }
-        film.setGenres(genreRepository.getFilmGenre(film.getId()));
-        film.setMpa(ratingMPARepository.getById(film.getMpa().getId()).get());
-        return get(film.getId());
+        return film;
     }
 
     @Override
@@ -129,17 +109,13 @@ public class DBFilmRepository implements FilmRepository {
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {
-        long filmId = rs.getLong("FILM_ID");
-
-        Film film = new Film(
-                filmId,
-                rs.getString("FILM_NAME"),
-                rs.getString("DESCRIPTION"),
-                rs.getDate("RELEASE_DATE").toLocalDate(),
-                rs.getInt("DURATION"),
-                new RatingMPA(rs.getInt("RATING_MPA_ID"), rs.getString("MPA_NAME")),
-                genreRepository.getFilmGenre(filmId)
-        );
+        Film film = new Film();
+        film.setId(rs.getLong("FILM_ID"));
+        film.setName(rs.getString("FILM_NAME"));
+        film.setDescription(rs.getString("DESCRIPTION"));
+        film.setReleaseDate(rs.getDate("RELEASE_DATE").toLocalDate());
+        film.setDuration(rs.getInt("DURATION"));
+        film.setMpa(new RatingMPA(rs.getInt("RATING_MPA_ID"), rs.getString("MPA_NAME")));
         return film;
     }
 }

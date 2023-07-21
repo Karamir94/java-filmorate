@@ -13,8 +13,9 @@ import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.repository.film.DBFilmRepository;
 
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -28,7 +29,10 @@ public class DBFilmRepositoryTest {
     private DBFilmRepository filmRepository;
 
     @Test
-    public void shouldCreateAndGetFilm() {
+    public void shouldCreateFilm() {
+        Set<Genre> genres = new LinkedHashSet<>();
+        genres.add(new Genre(1, null));
+
         Film film = Film.builder()
                 .name("film1")
                 .description("some description")
@@ -36,26 +40,18 @@ public class DBFilmRepositoryTest {
                 .duration(80)
                 .mpa(new RatingMPA(1, "G"))
                 .build();
-        film.setGenres(List.of(new Genre(1, null)));
+        film.setGenres(genres);
 
-        filmRepository.create(film);
-        Film film1 = filmRepository.get(2).get();
+        Film film2 = filmRepository.create(film);
 
-        assertThat(film1)
+        assertThat(film2)
                 .hasFieldOrPropertyWithValue("id", 2L)
                 .hasFieldOrPropertyWithValue("name", "film1")
                 .hasFieldOrPropertyWithValue("description", "some description")
                 .hasFieldOrPropertyWithValue("releaseDate", LocalDate.of(1999, 9, 9))
                 .hasFieldOrPropertyWithValue("duration", 80);
 
-        Integer genreId = film1.getGenres().stream()
-                .map(Genre::getId)
-                .collect(Collectors.toList()).get(0);
-
-        assertThat(genreId)
-                .isEqualTo(1);
-
-        Integer mpaCatId = film1.getMpa().getId();
+        Integer mpaCatId = film2.getMpa().getId();
 
         assertThat(mpaCatId)
                 .isEqualTo(1);
@@ -63,6 +59,10 @@ public class DBFilmRepositoryTest {
 
     @Test
     public void testUpdateFilm() {
+        Set<Genre> genres = new LinkedHashSet<>();
+        genres.add(new Genre(1, null));
+        genres.add(new Genre(2, null));
+
         Film film2 = Film.builder()
                 .id(1L)
                 .name("FILM2")
@@ -71,9 +71,9 @@ public class DBFilmRepositoryTest {
                 .duration(100)
                 .mpa(new RatingMPA(2, "PG"))
                 .build();
-        film2.setGenres(List.of(new Genre(1, null), new Genre(2, null)));
+        film2.setGenres(genres);
 
-        Film backedFilm = filmRepository.update(film2).get();
+        Film backedFilm = filmRepository.update(film2);
 
         assertThat(backedFilm)
                 .hasFieldOrPropertyWithValue("id", 1L)

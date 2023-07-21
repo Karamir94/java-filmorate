@@ -13,7 +13,7 @@ public interface FilmRepository {
 
     Film create(Film film);
 
-    Optional<Film> update(Film film);
+    Film update(Film film);
 
     List<Film> getPopularFilmList(int count);
 }

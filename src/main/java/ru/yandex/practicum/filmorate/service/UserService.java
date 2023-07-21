@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.repository.user.FriendsRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -36,19 +35,14 @@ public class UserService {
 
     public User update(User user) {
         checkId(user.getId());
-        return userRepository.update(user)
-                .orElseThrow(() -> new NotFoundException(String.format("User № %d not found", user.getId())));
+        return userRepository.update(user);
     }
 
     public void addFriend(long userId, long friendId) {
         checkId(userId);
         checkId(friendId);
 
-        List<Long> friendsIdList = friendsRepository.getUsersFriends(userId)
-                .stream()
-                .map(User::getId)
-                .collect(Collectors.toList());
-        if (friendsIdList.isEmpty() || !friendsIdList.contains(friendId)) {
+        if (!friendsRepository.checkUserInFriends(userId, friendId)) {
             friendsRepository.addFriend(userId, friendId);
         } else {
             log.info("у пользователя с id {} уже есть друг c id {}", userId, friendId);
@@ -66,11 +60,8 @@ public class UserService {
     public void deleteFriend(long userId, long friendId) {
         checkId(userId);
         checkId(friendId);
-        List<Long> friendsIdList = friendsRepository.getUsersFriends(userId)
-                .stream()
-                .map(User::getId)
-                .collect(Collectors.toList());
-        if (friendsIdList.contains(friendId)) {
+
+        if (friendsRepository.checkUserInFriends(userId, friendId)) {
             friendsRepository.deleteFriend(userId, friendId);
         } else {
             log.info("у пользователя с id {} нет друга c id {}", userId, friendId);
