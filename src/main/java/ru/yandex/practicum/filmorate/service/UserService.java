@@ -1,51 +1,60 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.repository.UserRepository;
+import ru.yandex.practicum.filmorate.repository.user.FriendsRepository;
+import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-
-    @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private final FriendsRepository friendsRepository;
 
     public List<User> getAll() {
         return userRepository.getAll();
     }
 
-    public void create(User user) {
-        userRepository.create(user);
-    }
-
-    public void update(User user) {
-        get(user.getId());
-        userRepository.update(user);
-    }
-
     public User get(long userId) {
-        User user = userRepository.get(userId)
+        checkId(userId);
+        return userRepository.get(userId)
                 .orElseThrow(() -> new NotFoundException(String.format("User № %d not found", userId)));
+    }
 
-        return user;
+    public User create(User user) {
+        return userRepository.create(user);
+    }
+
+    public User update(User user) {
+        checkId(user.getId());
+        return userRepository.update(user)
+                .orElseThrow(() -> new NotFoundException(String.format("User № %d not found", user.getId())));
     }
 
     public void addFriend(long userId, long friendId) {
         checkId(userId);
         checkId(friendId);
-        get(userId);
-        get(friendId);
 
-        userRepository.addFriend(userId, friendId);
+        List<Long> friendsIdList = friendsRepository.getUsersFriends(userId)
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+        if (friendsIdList.isEmpty() || !friendsIdList.contains(friendId)) {
+            friendsRepository.addFriend(userId, friendId);
+        } else {
+            log.info("у пользователя с id {} уже есть друг c id {}", userId, friendId);
+            throw new AlreadyExistException(String
+                    .format("у пользователя с id {} уже есть друг c id {}", userId, friendId));
+        }
     }
 
     private void checkId(long userId) {
@@ -57,30 +66,27 @@ public class UserService {
     public void deleteFriend(long userId, long friendId) {
         checkId(userId);
         checkId(friendId);
-        get(userId);
-        get(friendId);
-
-        userRepository.deleteFriend(userId, friendId);
+        List<Long> friendsIdList = friendsRepository.getUsersFriends(userId)
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+        if (friendsIdList.contains(friendId)) {
+            friendsRepository.deleteFriend(userId, friendId);
+        } else {
+            log.info("у пользователя с id {} нет друга c id {}", userId, friendId);
+            throw new NotFoundException(String
+                    .format("у пользователя с id {} нет друга c id {}", userId, friendId));
+        }
     }
 
     public List<User> getFriends(long userId) {
         checkId(userId);
-        get(userId);
-
-        return userRepository.getFriends(userId)
-                .stream()
-                .map((i) -> userRepository.get(i).get())
-                .collect(Collectors.toList());
+        return friendsRepository.getUsersFriends(userId);
     }
 
     public List<User> getCommonFriends(long user1Id, long user2Id) {
-        List<User> user1Friends = getFriends(user1Id);
-        return getFriends(user2Id)
-                .stream()
-                .filter(n -> {
-                    boolean b = user1Friends.contains(n);
-                    return b;
-                })
-                .collect(Collectors.toList());
+        checkId(user1Id);
+        checkId(user2Id);
+        return friendsRepository.getCommonFriends(user1Id, user2Id);
     }
 }
