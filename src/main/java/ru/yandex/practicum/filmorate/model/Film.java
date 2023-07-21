@@ -1,21 +1,21 @@
 package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import ru.yandex.practicum.filmorate.validator.RealiseDateConstraint;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Film {
-
     @EqualsAndHashCode.Exclude
     private long id;
     @NotBlank
@@ -27,20 +27,6 @@ public class Film {
     private LocalDate releaseDate; // дата релиза — не раньше 28 декабря 1895 года
     @Positive
     private int duration; // продолжительность фильма должна быть положительной
-    private String rating;
-    private Set<String> genre;
-    @JsonIgnore
-    private Set<Long> likes = new HashSet<>();
-
-    public Set<Long> getLikes() {
-        return likes;
-    }
-
-    public void setLikes(Set<Long> likes) {
-        this.likes = likes;
-    }
-
-    public int getLikesAmount() {
-        return likes.size();
-    }
+    private RatingMPA mpa;
+    private List<Genre> genres = new ArrayList<>();
 }

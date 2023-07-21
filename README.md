@@ -1,4 +1,5 @@
 # java-filmorate
+
 Template repository for Filmorate project.
 ![diagramm.png](diagramm.png)
 
@@ -9,7 +10,7 @@ Template repository for Filmorate project.
 1) films – данные фильмах
 2) film_rate – данные о лайках, поставленных фильму пользователями
 3) rating_mpa – наименования рейтингов фильмов Ассоциации кинокомпаний
-4) genres – наименования жанров фильмов 
+4) genres – наименования жанров фильмов
 5) film_genres – идентификаторы жанров для конкретных фильмов
 6) users – данные пользователей сервиса
 7) users_friends – идентификаторы пользователей, добавленных в друзья.
@@ -24,7 +25,6 @@ Template repository for Filmorate project.
 4) release_date – дата выхода
 5) rating_mpa_id (FK) – идентификатор рейтинга
 6) duration - продолжительность в минутах
-7) rate - рейтинг популярности фильма
 
 ### film_rate
 
