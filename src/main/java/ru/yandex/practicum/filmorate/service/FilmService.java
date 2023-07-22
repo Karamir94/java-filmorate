@@ -28,10 +28,7 @@ public class FilmService {
 
     public List<Film> getAll() {
         List<Film> films = filmRepository.getAll();
-
-        for (Film film : films) {
-            film.setGenres(new LinkedHashSet<>(genreRepository.getFilmGenre(film.getId())));
-        }
+        genreRepository.load(films);
         return films;
     }
 
@@ -40,23 +37,36 @@ public class FilmService {
         Film film = filmRepository.get(filmId)
                 .orElseThrow(() -> new NotFoundException(String.format("Film № %d not found", filmId)));
 
-        film.setGenres(new LinkedHashSet<>(genreRepository.getFilmGenre(film.getId())));
+        genreRepository.load(List.of(film));
         return film;
     }
 
     private Film setFilmGenres(Film film) {
         if (film.getGenres() != null) {
-            List<Integer> filmGenres = film.getGenres().stream()
-                    .map(Genre::getId)
-                    .distinct()
-                    .collect(Collectors.toList());
+            StringBuilder sb = new StringBuilder();
+            if (film.getGenres().isEmpty()) {
+                sb.append("DELETE FROM FILM_GENRES WHERE FILM_ID = " + film.getId() + " ");
+            } else {
+                List<Integer> filmGenres = film.getGenres().stream()
+                        .map(Genre::getId)
+                        .distinct()
+                        .collect(Collectors.toList());
 
-            genreRepository.deleteGenresOfFilm(film.getId());
+                sb.append("DELETE FROM FILM_GENRES WHERE FILM_ID = " + film.getId()
+                        + " ; " + "INSERT INTO FILM_GENRES (FILM_ID, GENRE_ID) VALUES ");
 
-            for (Integer genreId : filmGenres) {
-                genreRepository.setFilmGenre(film.getId(), genreId);
+                for (Integer genreId : filmGenres) {
+                    sb.append("( " + film.getId() + ", " + genreId + " ), ");
+                }
+                int length = sb.length();
+                sb.deleteCharAt(length - 2);
             }
-            film.setGenres(new LinkedHashSet<>(genreRepository.getFilmGenre(film.getId())));
+
+            String sql = sb.toString();
+            genreRepository.updateGenresForFilm(sql);
+
+            film.setGenres(new LinkedHashSet<>());
+            genreRepository.load(List.of(film));
         }
         return film;
     }

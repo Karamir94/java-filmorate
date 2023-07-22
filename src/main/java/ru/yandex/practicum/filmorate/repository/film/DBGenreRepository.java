@@ -2,18 +2,24 @@ package ru.yandex.practicum.filmorate.repository.film;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.function.Function.identity;
 
 @Slf4j
 @Component
@@ -21,6 +27,7 @@ import java.util.Optional;
 public class DBGenreRepository implements GenreRepository {
 
     private final NamedParameterJdbcOperations jdbcOperations;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public Optional<Genre> getById(int id) {
@@ -88,6 +95,27 @@ public class DBGenreRepository implements GenreRepository {
         int count = jdbcOperations.update(sql, map);
         log.info("Удалено жанров {} для фильма c id {}", count, id);
         return count > 0;
+    }
+
+    @Override
+    public void load(List<Film> films) {
+        final Map<Long, Film> filmById = films.stream().collect(Collectors.toMap(Film::getId, identity()));
+        String inSql = String.join(",", Collections.nCopies(films.size(), "?"));
+        final String sqlQuery = "select * from GENRES g, film_genres fg " +
+                "where fg.GENRE_ID = g.GENRE_ID AND fg.FILM_ID in (" + inSql + ")";
+
+        jdbcTemplate.query(sqlQuery, (ResultSet rs) -> {
+            //Получили из ResultSet'a идентификатор фильма и извлекли по нему из мапы значение)
+            final Film film = filmById.get(rs.getLong("FILM_ID"));
+            //Добавили в коллекцию внутри объекта класса FIlm новый жанр)
+            film.addGenre(makeGenre(rs));
+            //Преобразуем коллекцию типа Film к Integer и в массив, так как передавать требуется именно его
+        }, films.stream().map(Film::getId).toArray());
+    }
+
+    @Override
+    public void updateGenresForFilm(String sql) {
+        jdbcTemplate.update(sql);
     }
 
     private Genre makeGenre(ResultSet rs) throws SQLException {

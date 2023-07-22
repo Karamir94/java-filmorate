@@ -6,9 +6,11 @@ import ru.yandex.practicum.filmorate.validator.RealiseDateConstraint;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Data
@@ -28,6 +30,11 @@ public class Film {
     @Positive
     private int duration; // продолжительность фильма должна быть положительной
     @Valid
+    @NotNull
     private RatingMPA mpa;
-    private Set<Genre> genres;
+    private Set<Genre> genres = new LinkedHashSet<>();
+
+    public void addGenre(Genre genre) {
+        genres.add(genre);
+    }
 }

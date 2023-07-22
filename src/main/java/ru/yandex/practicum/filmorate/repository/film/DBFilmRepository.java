@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.RatingMPA;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -116,6 +117,7 @@ public class DBFilmRepository implements FilmRepository {
         film.setReleaseDate(rs.getDate("RELEASE_DATE").toLocalDate());
         film.setDuration(rs.getInt("DURATION"));
         film.setMpa(new RatingMPA(rs.getInt("RATING_MPA_ID"), rs.getString("MPA_NAME")));
+        film.setGenres(new LinkedHashSet<>());
         return film;
     }
 }

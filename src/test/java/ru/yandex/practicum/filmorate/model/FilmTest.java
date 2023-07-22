@@ -28,6 +28,7 @@ public class FilmTest extends Film {
         film = new Film();
         film.setName("xxx");
         film.setDuration(80);
+        film.setMpa(new RatingMPA(1, "G"));
     }
 
     @Test
