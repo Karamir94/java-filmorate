@@ -12,7 +12,7 @@
     <artifactId>filmorate</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>filmorate</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Project for selection film</description>
     <properties>
         <java.version>11</java.version>
         <maven.compiler.source>11</maven.compiler.source>

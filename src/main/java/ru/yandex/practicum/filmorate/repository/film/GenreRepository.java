@@ -22,5 +22,5 @@ public interface GenreRepository {
 
     void load(List<Film> films);
 
-    void updateGenresForFilm(String sql);
+    void updateGenresForFilm(Film film);
 }

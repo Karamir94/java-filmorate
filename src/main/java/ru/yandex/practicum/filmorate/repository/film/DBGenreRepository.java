@@ -114,7 +114,26 @@ public class DBGenreRepository implements GenreRepository {
     }
 
     @Override
-    public void updateGenresForFilm(String sql) {
+    public void updateGenresForFilm(Film film) {
+        StringBuilder sb = new StringBuilder();
+        if (film.getGenres().isEmpty()) {
+            sb.append("DELETE FROM FILM_GENRES WHERE FILM_ID = " + film.getId() + " ");
+        } else {
+            List<Integer> filmGenres = film.getGenres().stream()
+                    .map(Genre::getId)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            sb.append("DELETE FROM FILM_GENRES WHERE FILM_ID = " + film.getId()
+                    + " ; " + "INSERT INTO FILM_GENRES (FILM_ID, GENRE_ID) VALUES ");
+
+            for (Integer genreId : filmGenres) {
+                sb.append("( " + film.getId() + ", " + genreId + " ), ");
+            }
+            int length = sb.length();
+            sb.deleteCharAt(length - 2);
+        }
+        String sql = sb.toString();
         jdbcTemplate.update(sql);
     }
 

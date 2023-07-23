@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.film.GenreRepository;
 import ru.yandex.practicum.filmorate.repository.film.LikesRatingRepository;
@@ -14,7 +13,6 @@ import ru.yandex.practicum.filmorate.repository.film.RatingMPARepository;
 
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -43,27 +41,7 @@ public class FilmService {
 
     private Film setFilmGenres(Film film) {
         if (film.getGenres() != null) {
-            StringBuilder sb = new StringBuilder();
-            if (film.getGenres().isEmpty()) {
-                sb.append("DELETE FROM FILM_GENRES WHERE FILM_ID = " + film.getId() + " ");
-            } else {
-                List<Integer> filmGenres = film.getGenres().stream()
-                        .map(Genre::getId)
-                        .distinct()
-                        .collect(Collectors.toList());
-
-                sb.append("DELETE FROM FILM_GENRES WHERE FILM_ID = " + film.getId()
-                        + " ; " + "INSERT INTO FILM_GENRES (FILM_ID, GENRE_ID) VALUES ");
-
-                for (Integer genreId : filmGenres) {
-                    sb.append("( " + film.getId() + ", " + genreId + " ), ");
-                }
-                int length = sb.length();
-                sb.deleteCharAt(length - 2);
-            }
-
-            String sql = sb.toString();
-            genreRepository.updateGenresForFilm(sql);
+            genreRepository.updateGenresForFilm(film);
 
             film.setGenres(new LinkedHashSet<>());
             genreRepository.load(List.of(film));
@@ -119,10 +97,7 @@ public class FilmService {
 
     public List<Film> getTopFilms(int size) {
         List<Film> films = filmRepository.getPopularFilmList(size);
-
-        for (Film film : films) {
-            film.setGenres(new LinkedHashSet<>(genreRepository.getFilmGenre(film.getId())));
-        }
+        genreRepository.load(films);
         return films;
     }
 }
