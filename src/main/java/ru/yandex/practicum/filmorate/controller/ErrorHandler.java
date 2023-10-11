@@ -26,7 +26,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleAlreadyExistException(final AlreadyExistException e) {
-        log.info("404 {}", e.getMessage());
+        log.info("400 {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
